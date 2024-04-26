@@ -1,0 +1,24 @@
+jobs:
+  test_1:
+    source:
+      type: local
+      path: first_file.txt
+      encrypt: 4B711364F821F0DF6C1FA7F4FDDF3435B9B715B1BF5C698B0D4B65A5143CB6F9
+    destination:
+      type: local
+      name: encrypted_archive
+      path: apply_output
+      overwrite: false
+    schedule:
+      after: 0s
+  test_2:
+    source:
+      type: local
+      path: input_directory/
+    destination:
+      type: local
+      name: apply_archive
+      path: .
+      overwrite: false
+    schedule:
+      after: 0s
