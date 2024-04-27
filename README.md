@@ -31,10 +31,10 @@ charon uses the `sched` library for scheduling tasks, meaning charon will exit w
 
 ## docker
 
-charon can be run with docker
+charon is available as a docker image
 
 ```bash
-docker run --rm -it -v ./charon.yml:/app/charon.yml registry.gitlab.com/haondt/cicd/registry/charon
+docker pull registry.gitlab.com/haondt/cicd/registry/charon:latest
 ```
 
 see `docker-compose.yml` for a sample docker compose setup.

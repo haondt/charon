@@ -6,7 +6,7 @@ import destinations
 from sources import get_file_extension
 
 
-def get_config(config_file):
+def load_config(config_file):
     with open(config_file, 'r') as f:
         return yaml.safe_load(f)
 
