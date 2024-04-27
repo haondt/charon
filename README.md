@@ -6,9 +6,9 @@ charon is a utility for backing up data from one location to another at regular 
 
 - [usage](#usage)
 - [configuration](#configuration)
-    - [sources](##sources)
-    - [destinations](##destinations)
-    - [schedule](##schedule)
+    - [sources](#sources)
+    - [destinations](#destinations)
+    - [schedule](#schedule)
 - [styx](#styx)
 - [tests](#tests)
 
