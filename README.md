@@ -82,7 +82,17 @@ source:
 
 **http**
 
-TODO
+performs an http request, and saves the response body to a file
+
+```yml
+source:
+    type: http
+    url: http://example.com/ # url to make request to
+    method: get # optional, request method, defaults to get
+    ext: json # optional, extension to use for saved file, defaults to txt
+    auth:  # optional, authentication configuration
+        bearer: eyJhbGc... # optional, bearer token
+```
 
 ## destinations
 
@@ -151,6 +161,16 @@ this runs at regular intervals, using the one shot format, starting from the tim
 ```yml
 schedule:
     every: 1h30m # run every hour and a half
+```
+
+**combinations**
+
+you can combine schedules, for example to run immediately, and then every other day
+
+```yml
+schedule:
+    after: 0s
+    every: 2d
 ```
 
 # styx

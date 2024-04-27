@@ -1,0 +1,44 @@
+gcp_buckets:
+  primary:
+    bucket: 9b70a1a8-a725-4ec2-8073-6d5a6288ebb1-foo-bar
+  secondary:
+    bucket: 26a03f45-de89-4c62-8ef4-1d2fa2d2276a-baz
+
+jobs:
+  apples:
+    source:
+      type: http
+      url: http://apples.com/api/apples
+      method: post
+      ext: json
+      auth:  
+        bearer: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjAsImZvbyI6ImJhciJ9.VxZtqbzg3icdEtYS7VIhndnsmwoJnw7HNeznE5Ly174
+    destination:
+      type: local
+      name: apples
+      path: ./backups
+      overwrite: true
+    schedule:
+      every: 1d
+  bananas:
+    source:
+      type: local
+      path: /home/bananauser/bananas
+      encrypt: 4B711364F821F0DF6C1FA7F4FDDF3435B9B715B1BF5C698B0D4B65A5143CB6F9
+    destination:
+      type: local
+      name: bananas
+      path: ./backups
+      overwrite: false
+    schedule:
+      after: 1h
+  coconuts:
+    source:
+      type: http
+      url: https://coconuts.com/api/coconuts
+    destination:
+      type: gcp_bucket
+      config: primary
+    schedule:
+      after: 0s
+      cron: "0 1 5 * *"

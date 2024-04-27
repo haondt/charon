@@ -39,16 +39,16 @@ def task_factory(name, config):
             raise HTTPError(f"received status code {response.status_code}")
 
         with tempfile.TemporaryDirectory() as td:
-            initial_file = f'{name}.{extension}'
-            with open(os.path.join(td, initial_file)) as f:
+            initial_file_path = os.path.join(td, f'{name}.{extension}')
+            with open(initial_file_path, 'w') as f:
                 f.write(response.text)
 
             if encrypt:
                 tar_file = os.path.join(td, f'{name}.tar.gz')
-                _tar(initial_file, tar_file)
+                _tar(initial_file_path, tar_file)
                 _encrypt(encryption_key, tar_file, output_file)
             else:
-                _tar(initial_file, output_file)
+                _tar(initial_file_path, output_file)
 
     return task, _get_file_extension(config)
 
