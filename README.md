@@ -53,6 +53,8 @@ jobs:
         # ...
 ```
 
+see `charon.yml` for an example config.
+
 ## sources
 
 all sources will have a few shared fields:
