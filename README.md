@@ -29,6 +29,22 @@ python3 charon.py -f MY_CONFIG.yml
 
 charon uses the `sched` library for scheduling tasks, meaning charon will exit when there are no more tasks to run. this is possible depending on the configuration.
 
+## docker
+
+charon can be run with docker
+
+```bash
+docker run --rm -it -v ./charon.yml:/app/charon.yml registry.gitlab.com/haondt/cicd/registry/charon
+```
+
+see `docker-compose.yml` for a sample docker compose setup.
+
+styx can also be run with docker
+
+```bash
+docker run --rm -it -v ./charon.yml:/app/charon.yml registry.gitlab.com/haondt/cicd/registry/charon python3 charon.py styx apply my_job
+```
+
 # configuration
 
 configuration is given as a yaml file with the following structure:

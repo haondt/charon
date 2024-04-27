@@ -8,5 +8,6 @@ tasks:
       - source: push
         has_tag: true
         tag_source: latest
+    context: src
     registries:
       - gitlab

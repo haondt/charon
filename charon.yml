@@ -38,6 +38,7 @@ jobs:
       url: https://coconuts.com/api/coconuts
     destination:
       type: gcp_bucket
+      name: coconuts_backup
       config: primary
     schedule:
       after: 0s
