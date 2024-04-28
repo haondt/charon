@@ -18,13 +18,13 @@ charon is a utility for backing up data from one location to another at regular 
 start charon with:
 
 ```bash
-python3 charon.py
+python3 -m charon
 ```
 
 charon will look for a config file at `charon.yml`. a different path can be specified with:
 
 ```bash
-python3 charon.py -f MY_CONFIG.yml
+python3 -m charon -f MY_CONFIG.yml
 ```
 
 charon uses the `sched` library for scheduling tasks, meaning charon will exit when there are no more tasks to run. this is possible depending on the configuration.
@@ -42,7 +42,7 @@ see `docker-compose.yml` for a sample docker compose setup.
 styx can also be run with docker
 
 ```bash
-docker run --rm -it -v ./charon.yml:/app/charon.yml registry.gitlab.com/haondt/cicd/registry/charon python3 charon.py styx apply my_job
+docker run --rm -it -v ./charon.yml:/app/charon.yml registry.gitlab.com/haondt/cicd/registry/charon python3 -m charon styx apply my_job
 ```
 
 # configuration
@@ -196,19 +196,19 @@ schedule:
 charon comes with a command line utility, `styx`, that will run a job once, immediately.
 
 ```bash
-python3 charon.py styx apply MY_JOB
+python3 -m charon styx apply MY_JOB
 ```
 
 styx can also run the job in reverse, pulling it from the destination and dumping it to a given directory
 
 ```bash
-python3 charon.py styx revert MY_JOB OUTPUT_DIRECTORY
+python3 -m charon styx revert MY_JOB OUTPUT_DIRECTORY
 ```
 
 you can specify the config file before calling styx
 
 ```bash
-python3 charon.py -f MY_CONFIG.yml styx apply MY_JOB
+python3 -m charon -f MY_CONFIG.yml styx apply MY_JOB
 ```
 
 see tests for more examples.

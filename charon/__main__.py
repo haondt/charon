@@ -1,7 +1,7 @@
-from shared import load_config, configure_utils, get_task
-import scheduling
+from .shared import load_config, configure_utils, get_task
+from . import scheduling
 import argparse
-import styx
+from . import styx
 
 DEFAULT_CONFIG_FILE = 'charon.yml'
 

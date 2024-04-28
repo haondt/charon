@@ -11,3 +11,9 @@ tasks:
     context: src
     registries:
       - gitlab
+  - type: pypi-build
+    auto_push: true
+    context: ??
+    registries:
+      - gitlab
+

@@ -1,5 +1,5 @@
 import os
-from shared import load_config, configure_utils, get_task, revert
+from .shared import load_config, configure_utils, get_task, revert
 
 def configure_parser(parser):
     sub_parsers = parser.add_subparsers(dest='styx_command', required=True)

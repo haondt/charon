@@ -1,9 +1,9 @@
 import tempfile
 import os
 import yaml
-import sources
-import destinations
-from sources import get_file_extension
+from . import sources
+from . import destinations
+from .sources import get_file_extension
 
 
 def load_config(config_file):
