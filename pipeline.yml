@@ -13,6 +13,7 @@ tasks:
       - gitlab
   - type: pypi-build
     auto_push: true
+    package: charon
     registries:
       - gitlab
 
