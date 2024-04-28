@@ -15,5 +15,5 @@ tasks:
     auto_push: true
     package: charon
     registries:
-      - gitlab
+      - testpypi
 
