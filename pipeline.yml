@@ -13,7 +13,6 @@ tasks:
       - gitlab
   - type: pypi-build
     auto_push: true
-    context: ??
     registries:
       - gitlab
 
