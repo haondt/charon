@@ -4,16 +4,20 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "haondt_charon"
-authors = [{name = "Noah Burghardt"}]
+authors = [{name = "haondt"}]
 classifiers = ["License :: OSI Approved :: MIT License"]
 description = "charon is a utility for backing up data from one location to another at regular intervals."
 version = "0.0.0"
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["backup", "recovery"]
 
 [project.scripts]
 charon = "charon.__main__:main"
 
 [project.urls]
-Home = "https://gitlab.com/haondt/charon"
+Homepage = "https://gitlab.com/haondt/charon"
+Repository = "https://gitlab.com/haondt/charon"
 
 [tool.flit.module]
 name = "charon"
