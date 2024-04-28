@@ -11,7 +11,7 @@ tasks:
     context: .
     registries:
       - gitlab
-  - type: pypi-build
+  - type: python-build
     auto_push_on:
       - source: push
     package: charon
