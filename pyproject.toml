@@ -11,6 +11,12 @@ version = "0.0.0"
 readme = "README.md"
 license = { file = "LICENSE" }
 keywords = ["backup", "recovery"]
+dependencies = [
+    "croniter>=2.0.5",
+    "PyYAML>=6.0.1",
+    "cryptography>=42.0.5",
+    "google-cloud-storage>=2.16.0"
+]
 
 [project.scripts]
 charon = "charon.__main__:main"

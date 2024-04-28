@@ -12,8 +12,13 @@ tasks:
     registries:
       - gitlab
   - type: python-build
+    package: haondt-charon
+    registries:
+      - testpypi
+  - type: python-build
     auto_push_on:
       - source: push
     package: haondt-charon
     registries:
       - pypi
+      - gitlab
