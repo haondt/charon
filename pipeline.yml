@@ -8,7 +8,7 @@ tasks:
       - source: push
         has_tag: true
         tag_source: latest
-    context: src
+    context: .
     registries:
       - gitlab
   - type: pypi-build

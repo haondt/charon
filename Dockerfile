@@ -2,9 +2,9 @@ FROM python:3.11.1-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY charon/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY ./charon .
 CMD ["python3", "charon.py", "-f", "/config/charon.yml"]
 
