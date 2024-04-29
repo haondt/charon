@@ -4,6 +4,7 @@ charon is a utility for backing up data from one location to another at regular 
 
 # table of contents
 
+- [installation](#installation)
 - [usage](#usage)
 - [configuration](#configuration)
     - [sources](#sources)
@@ -12,26 +13,9 @@ charon is a utility for backing up data from one location to another at regular 
 - [styx](#styx)
 - [tests](#tests)
 
+# installation
 
-# usage
-
-start charon with:
-
-```bash
-python3 -m charon
-```
-
-charon will look for a config file at `charon.yml`. a different path can be specified with:
-
-```bash
-python3 -m charon -f MY_CONFIG.yml
-```
-
-charon uses the `sched` library for scheduling tasks, meaning charon will exit when there are no more tasks to run. this is possible depending on the configuration.
-
-## docker
-
-charon is available as a docker image
+charon can be installed as a docker image
 
 ```bash
 docker pull registry.gitlab.com/haondt/cicd/registry/charon:latest
@@ -39,11 +23,35 @@ docker pull registry.gitlab.com/haondt/cicd/registry/charon:latest
 
 see `docker-compose.yml` for a sample docker compose setup.
 
-styx can also be run with docker
+charon can also be installed as a python package
 
 ```bash
-docker run --rm -it -v ./charon.yml:/app/charon.yml registry.gitlab.com/haondt/cicd/registry/charon python3 -m charon styx apply my_job
+# from pypi
+pip install haondt-charon
+# from gitlab
+pip install haondt-charon --index-url https://gitlab.com/api/v4/projects/57154225/packages/pypi/simple
 ```
+
+# usage
+
+start charon with:
+
+```bash
+# if installed as a python package, or if running from source
+python3 -m charon
+# the pypi package also includes a standlone binary
+charon
+# from the docker image
+docker run --rm -it -v ./charon.yml:/config/charon.yml registry.gitlab.com/haondt/cicd/registry/charon:latest
+```
+
+charon will look for a config file at `charon.yml`. a different path can be specified with:
+
+```bash
+charon -f MY_CONFIG.yml
+```
+
+charon uses the `sched` library for scheduling tasks, meaning charon will exit when there are no more tasks to run. this is possible depending on the configuration.
 
 # configuration
 
@@ -193,22 +201,22 @@ schedule:
 
 # styx
 
-charon comes with a command line utility, `styx`, that will run a job once, immediately.
+charon includes a subcommand, `styx`, that will run a job once, immediately.
 
 ```bash
-python3 -m charon styx apply MY_JOB
+charon styx apply MY_JOB
 ```
 
 styx can also run the job in reverse, pulling it from the destination and dumping it to a given directory
 
 ```bash
-python3 -m charon styx revert MY_JOB OUTPUT_DIRECTORY
+charon styx revert MY_JOB OUTPUT_DIRECTORY
 ```
 
 you can specify the config file before calling styx
 
 ```bash
-python3 -m charon -f MY_CONFIG.yml styx apply MY_JOB
+charon -f MY_CONFIG.yml styx apply MY_JOB
 ```
 
 see tests for more examples.
