@@ -18,6 +18,9 @@ charon is a utility for backing up data from one location to another at regular 
 charon can be installed as a docker image
 
 ```bash
+# from docker hub
+docker pull haumea/charon
+# from gitlab
 docker pull registry.gitlab.com/haondt/cicd/registry/charon:latest
 ```
 

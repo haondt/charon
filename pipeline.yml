@@ -11,6 +11,7 @@ tasks:
     context: .
     registries:
       - gitlab
+      - docker-hub
   - type: python-build
     package: haondt-charon
     registries:
