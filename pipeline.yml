@@ -1,7 +1,7 @@
 tasks:
   - type: docker-build
     image: charon
-    auto_push_on:
+    auto:
       - source: push
         has_tag: true
         tag_source: tag
@@ -17,7 +17,7 @@ tasks:
     registries:
       - testpypi
   - type: python-build
-    auto_push_on:
+    auto:
       - source: push
     package: haondt-charon
     registries:
