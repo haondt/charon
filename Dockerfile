@@ -5,6 +5,6 @@ WORKDIR /app
 COPY charon/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./charon .
-CMD ["python3", "charon.py", "-f", "/config/charon.yml"]
+COPY ./charon ./charon
+CMD ["python3", "-m", "charon", "-f", "/config/charon.yml"]
 
