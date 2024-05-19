@@ -18,6 +18,8 @@ def source_factory(source_type):
         return  sources.local
     if (source_type == 'http'):
         return  sources.http
+    if (source_type == 'sqlite'):
+        return  sources.sqlite
     raise KeyError(f'unknown source type: {source_type}')
 
 def destination_factory(destination_type):

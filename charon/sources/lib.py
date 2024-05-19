@@ -1,4 +1,4 @@
-import os, tarfile
+import os, tarfile, tempfile
 from cryptography.fernet import Fernet
 from base64 import urlsafe_b64encode
 
@@ -7,7 +7,7 @@ def _get_file_extension(config):
         return 'enc'
     return 'tar.gz'
 
-def _validate_and_decode_encryption_key(encryption_key):
+def _validate_and_decode_encryption_key(encryption_key) -> bytes:
     encryption_bytes = bytes.fromhex(encryption_key)
     if len(encryption_bytes) != 32:
         raise ValueError("encryption key must be 32 bytes long")
@@ -15,7 +15,7 @@ def _validate_and_decode_encryption_key(encryption_key):
 
 def _encrypt(encryption_key, input_file, output_file):
     encryption_bytes = _validate_and_decode_encryption_key(encryption_key)
-    fernet = Fernet(urlsafe_b64encode(encryption_bytes).decode())
+    fernet = Fernet(urlsafe_b64encode(encryption_bytes))
     with open(input_file, 'rb') as f:
         original = f.read()
     encrypted  = fernet.encrypt(original)
@@ -25,7 +25,7 @@ def _encrypt(encryption_key, input_file, output_file):
 
 def _decrypt(encryption_key, input_file, output_file):
     encryption_bytes = _validate_and_decode_encryption_key(encryption_key)
-    fernet = Fernet(urlsafe_b64encode(encryption_bytes).decode())
+    fernet = Fernet(urlsafe_b64encode(encryption_bytes))
     with open(input_file, 'rb') as f:
         encrypted = f.read()
     original  = fernet.decrypt(encrypted)
@@ -58,3 +58,13 @@ def _untar(input_file, output_dir):
         raise FileNotFoundError(input_file)
     with tarfile.open(input_file, "r:gz") as tar:
         tar.extractall(output_dir)
+
+def _export_data(name, input_path, output_file, encryption_key: str | None=None):
+    if encryption_key is not None:
+        with tempfile.TemporaryDirectory() as td:
+            tar_file = f'{name}.tar.gz'
+            tar_file_path = os.path.join(td, tar_file)
+            _tar(input_path, tar_file_path)
+            _encrypt(encryption_key, tar_file_path, output_file)
+    else:
+        _tar(input_path, output_file)

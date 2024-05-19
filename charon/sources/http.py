@@ -2,15 +2,12 @@ import tempfile
 import os
 import requests
 from requests.models import HTTPError
-from .lib import _validate_and_decode_encryption_key, _tar, _untar, _encrypt, _decrypt, _get_file_extension
-
-
+from .lib import _validate_and_decode_encryption_key, _untar, _decrypt, _get_file_extension, _export_data
 
 def task_factory(name, config):
     url = config['url']
     encryption_key = config.get('encrypt')
-    encrypt = encryption_key is not None
-    if encrypt:
+    if encryption_key is not None:
         _validate_and_decode_encryption_key(encryption_key)
 
     headers = {}
@@ -29,7 +26,6 @@ def task_factory(name, config):
 
     def task(output_file: str):
         nonlocal encryption_key
-        nonlocal encrypt
         nonlocal name
         nonlocal request
         nonlocal extension
@@ -42,13 +38,7 @@ def task_factory(name, config):
             initial_file_path = os.path.join(td, f'{name}.{extension}')
             with open(initial_file_path, 'w') as f:
                 f.write(response.text)
-
-            if encrypt:
-                tar_file = os.path.join(td, f'{name}.tar.gz')
-                _tar(initial_file_path, tar_file)
-                _encrypt(encryption_key, tar_file, output_file)
-            else:
-                _tar(initial_file_path, output_file)
+            _export_data(name, initial_file_path, output_file, encryption_key)
 
     return task, _get_file_extension(config)
 

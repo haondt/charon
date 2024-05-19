@@ -22,3 +22,15 @@ jobs:
       overwrite: false
     schedule:
       after: 0s
+  test_3:
+    source:
+      type: sqlite
+      db_path: test3.db
+      encrypt: 4B711364F821F0DF6C1FA7F4FDDF3435B9B715B1BF5C698B0D4B65A5143CB6F9
+    destination:
+      type: local
+      name: test_3_output_file
+      path: test_3_output_dest
+      overwrite: false
+    schedule:
+      after: 0s

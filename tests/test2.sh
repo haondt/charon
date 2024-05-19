@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# tests nested directories + non-encrypted
+
 export PYTHONPATH="../"
 mkdir -p input_directory/nested_directory
 echo "this is the foo file" > input_directory/file1.txt
@@ -26,7 +28,7 @@ if [ "$real_output" == "$expected_output" ]; then
     echo "test passed!"
 else
     echo "test failed!"
-    diff --suppress-common-lines -y <(echo "$expected_output") <(echo "$real_output")
+    diff -y <(echo "$expected_output") <(echo "$real_output")
 fi
 
 
