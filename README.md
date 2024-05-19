@@ -123,6 +123,16 @@ source:
         bearer: eyJhbGc... # optional, bearer token
 ```
 
+**sqlite**
+
+performs a backup on an sqlite3 db
+
+```yml
+source:
+    type: sqlite
+    db_path: /path/to/db_file.db
+```
+
 ## destinations
 
 all destinations will also have some shared fields
