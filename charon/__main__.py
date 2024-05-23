@@ -2,6 +2,11 @@ from .shared import load_config, configure_utils, get_task
 from . import scheduling
 import argparse
 from . import styx
+import logging
+
+_logger = logging.getLogger(__name__)
+LOG_TEMPLATE = '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
+logging.basicConfig(format=LOG_TEMPLATE, level=logging.INFO)
 
 DEFAULT_CONFIG_FILE = 'charon.yml'
 
@@ -37,7 +42,7 @@ def main():
 
     args = parser.parse_args()
     if args.subcommand is None:
-        print('running in service mode...')
+        _logger.info('running in service mode...')
         serve(args)
     elif args.subcommand == 'styx':
         styx.execute(args)

@@ -4,10 +4,14 @@ from croniter import croniter
 from dataclasses import dataclass 
 import logging
 from datetime import timedelta
-import re
+import re, signal
 
 _logger = logging.getLogger(__name__)
 
+JOB_TIMEOUT_SECONDS = 30
+
+def timeout_handler(signum, frame):
+    raise Exception(f'Job failed to complete in the maximum allowed timeframe: {JOB_TIMEOUT_SECONDS} seconds')
 
 @dataclass
 class Job:
@@ -21,10 +25,16 @@ class Job:
         scheduler.enterabs(next, 1, self.run_and_reschedule, (scheduler,))
 
     def run_and_reschedule(self, scheduler):
+        _logger.info(f"Executing job {self.name}")
+        signal.signal(signal.SIGALRM, timeout_handler)
         try:
-            self.task()
-        except Exception as e:
-            _logger.exception(f"Job {self.name} failed: {e}")
+            signal.alarm(JOB_TIMEOUT_SECONDS)
+            try:
+                self.task()
+            except Exception as e:
+                _logger.exception(f"Job {self.name} failed: {e}")
+        finally:
+            signal.alarm(0)
 
         if self.repeat:
             self.schedule_next(scheduler)

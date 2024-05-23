@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from google.cloud import storage
-import os
+import os, logging
 
+_logger = logging.getLogger(__name__)
 
 @dataclass
 class GcpBucketConfigEntry:
@@ -35,12 +36,12 @@ def task_factory(config):
         ensureCredentialsEnvVar()
 
         target_path = f"{output_name}.{extension}"
-        print(f'starting upload to gs://{config.bucket}/{target_path}')
+        _logger.info(f'starting upload to gs://{config.bucket}/{target_path}')
         client = storage.Client()
         bucket = client.get_bucket(config.bucket)
         blob = bucket.blob(target_path)
         blob.upload_from_filename(input_file)
-        print(f'finished upload to gs://{config.bucket}/{target_path}')
+        _logger.info(f'finished upload to gs://{config.bucket}/{target_path}')
     return task
 
 def revert(config, extension, output_file_path):
@@ -48,9 +49,9 @@ def revert(config, extension, output_file_path):
     output_name = config['name']
     config = _config.entries[config['config']] 
     target_path = f"{output_name}.{extension}"
-    print(f'starting download from gs://{config.bucket}/{target_path}')
+    _logger.info(f'starting download from gs://{config.bucket}/{target_path}')
     client = storage.Client()
     bucket = client.get_bucket(config.bucket)
     blob = bucket.blob(target_path)
     blob.download_to_filename(output_file_path)
-    print(f'finished download from to gs://{config.bucket}/{target_path}')
+    _logger.info(f'finished download from to gs://{config.bucket}/{target_path}')
