@@ -13,10 +13,7 @@ tasks:
       - gitlab
       - docker-hub
   - type: python-build
-    package: haondt-charon
-    registries:
-      - testpypi
-  - type: python-build
+    inject_pyproject_version: pyproject.toml
     auto:
       - source: push
     package: haondt-charon
