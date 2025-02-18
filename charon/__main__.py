@@ -49,7 +49,7 @@ def main():
         serve(args)
     elif args.subcommand == 'apply':
         styx.apply(args)
-    elif args.subcommand == 'apply':
+    elif args.subcommand == 'revert':
         styx.revert(args)
 
 if __name__ == '__main__':

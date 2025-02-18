@@ -1,5 +1,10 @@
+from argparse import ArgumentError
 import os
-from .shared import load_config, get_task, revert
+from .shared import load_config, get_task
+import logging
+from . import restic
+
+_logger = logging.getLogger(__name__)
 
 def parse_args(args):
     config = load_config(args.file)
@@ -20,7 +25,7 @@ def parse_args(args):
 def apply(args):
     name, job = parse_args(args)
 
-    print(f'applying job: {name}')
+    _logger.info(f'[{name}] applying job')
     task = get_task(name, job)
     task()
 
@@ -28,11 +33,12 @@ def revert(args):
     name, job = parse_args(args)
     output_dir = os.path.abspath(args.output_dir)
     if os.path.isfile(output_dir):
-        print(f'output_dir is a file: {output_dir}')
-        exit(1)
-    if not os.path.isdir(output_dir):
-        print(f'directory does not exist: {output_dir}')
-        exit(1)
+        raise ValueError(f'[{name}] output_dir is a file: {output_dir}')
+    if os.path.isdir(output_dir) and os.listdir(output_dir):
+        raise ValueError(f'[{name}] directory exists and is not empty: {output_dir}')
 
-    print(f'reverting job: {name} into {output_dir}')
-    revert(job, output_dir)
+    _logger.info(f'reverting job: {name} into {output_dir}')
+
+    repo = restic.get_repository(job['repository'])
+    repo.restore(output_dir)
+

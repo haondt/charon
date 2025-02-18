@@ -1,9 +1,9 @@
-import tempfile
-import os
 import yaml
+import logging
 from . import sources
 from . import restic
 
+_logger = logging.getLogger(__name__)
 
 def load_config(config_file):
     with open(config_file, 'r') as f:
@@ -11,7 +11,7 @@ def load_config(config_file):
 
 def get_task(name, config):
     source = config['source']
-    destination = config['destination']
+    repo_config = config['repository']
 
     source_type = source['type']
     if source_type == "local":
@@ -23,33 +23,19 @@ def get_task(name, config):
     else:
         raise KeyError(f'unknown source type: {source_type}')
 
-    destination_type = destination["type"]
-    if destination_type == "local":
-        repo = restic.get_local_repository(destination)
-    elif destination_type == "gcs_bucket":
-        repo = restic.get_gcs_repository(config)
-    elif destination_type == "sftp":
-        repo = restic.get_sftp_repository(config)
-    else:
-        raise KeyError(f'unknown destination type: {source_type}')
+    repo = restic.get_repository(repo_config)
 
     def inner():
         nonlocal source_factory
         nonlocal repo
         with source_factory() as source:
+            if (repo_config.get('create', True)):
+                if not repo.exists():
+                    _logger.info(f'[{name}] initializing repository')
+                    repo.init_repo()
+
+            _logger.info(f'[{name}] creating snapshot')
             repo.backup([source.path], cwd=source.context)
 
     return inner
-
-def revert(config, output_dir: str):
-    source = config['source']
-    destination = config['destination']
-    source_revert = get_source_revert(source)
-    destination_revert = get_destination_revert(destination)
-
-    with tempfile.TemporaryDirectory() as td:
-        file_path = os.path.join(td, 'tmp')
-        extension = get_file_extension(source)
-        destination_revert(destination, extension, file_path)
-        source_revert(source, file_path, output_dir)
 
