@@ -16,7 +16,7 @@ class HttpSource:
         if response.status_code != 200:
             raise HTTPError(f"received status code {response.status_code}")
 
-        path = os.path.join(str(self._td), self._filename)
+        path = os.path.join(self._td.name, self._filename)
         with open(path, 'w') as f:
             f.write(response.text)
         return self
@@ -33,7 +33,7 @@ class HttpSource:
     def context(self):
         if self._td is None:
             raise RuntimeError("Cannot provide context when temporary directory is unset.")
-        return str(self._td)
+        return self._td.name
 
     @property
     def path(self):

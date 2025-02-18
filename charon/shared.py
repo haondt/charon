@@ -16,8 +16,8 @@ def get_task(name, config):
     source_type = source['type']
     if source_type == "local":
         source_factory = lambda: sources.local.create_local_source(source)
-    # elif source_type == "http":
-    #     source_factory = sources.http.create_http_source(name, source)
+    elif source_type == "http":
+        source_factory = lambda: sources.http.create_http_source(name, source)
     # elif source_type == "sqlite":
     #     TODO
     else:
