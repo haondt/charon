@@ -1,7 +1,7 @@
 import os
 
 class LocalSource:
-    def __init__(self, context: str, path: str):
+    def __init__(self, context: str|None, path: str):
         self._path = path
         self._context = context
 
@@ -21,6 +21,7 @@ class LocalSource:
 
 def create_local_source(config):
     path = config['path']
+    path = os.path.abspath(path)
     if os.path.isdir(path):
         context = path
         path = '.'

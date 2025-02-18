@@ -2,6 +2,10 @@
 
 # tests sqlite + encrypt
 
+green="\e[32m"
+red="\e[31m"
+reset="\e[0m"
+
 export PYTHONPATH="../"
 
 sqlite3 test3.db <<EOF
@@ -18,9 +22,9 @@ INSERT INTO users (name, age) VALUES ('Alice', 30), ('Bob', 25), ('Charlie', 35)
 
 EOF
 
-python3 -m charon -f charon.test.yml styx apply test_3
+python3 -m charon -f charon.test.yml apply test_3
 mkdir revert_output
-python3 -m charon -f charon.test.yml styx revert test_3 revert_output
+python3 -m charon -f charon.test.yml revert test_3 revert_output
 
 expected_output="revert_output
 └── test3.db
@@ -33,10 +37,11 @@ real_output="$(tree revert_output)
 $(sqlite3 revert_output/test3.db 'SELECT * FROM users;')"
 
 if [ "$real_output" == "$expected_output" ]; then
-    echo "test passed!"
+    echo -e "${green}test passed!${reset}"
 else
-    echo "test failed!"
+    echo -e "${red}test failed!${reset}"
     diff -y <(echo "$expected_output") <(echo "$real_output")
 fi
 
 rm -r revert_output test_3_output_dest test3.db 2>/dev/null
+rm -rf repo_3
