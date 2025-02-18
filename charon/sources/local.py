@@ -1,29 +1,33 @@
-import tempfile
 import os
-from .lib import _validate_and_decode_encryption_key, _untar, _decrypt, _get_file_extension, _export_data
 
-def task_factory(name, config):
-    path = os.path.abspath(config['path'])
-    encryption_key = config.get('encrypt')
-    if encryption_key is not None:
-        _validate_and_decode_encryption_key(encryption_key)
+class LocalSource:
+    def __init__(self, context: str, path: str):
+        self._path = path
+        self._context = context
 
-    def task(output_file: str):
-        nonlocal path
-        nonlocal encryption_key
-        nonlocal name
-        _export_data(name, path, output_file, encryption_key)
+    def __enter__(self):
+        return self
 
-    return task, _get_file_extension(config)
+    def __exit__(self, *_):
+        return
 
-def revert(config, input_file, output_dir='.'):
-    encryption_key = config.get('encrypt')
-    encrypt = encryption_key is not None
-    if encrypt:
-        _validate_and_decode_encryption_key(encryption_key)
-        with tempfile.TemporaryDirectory() as td:
-            tar_file = os.path.join(td, 'tmp.tar.gz')
-            _decrypt(encryption_key, input_file, tar_file)
-            _untar(tar_file, output_dir)
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def context(self):
+        return self._context
+
+def create_local_source(config):
+    path = config['path']
+    if os.path.isdir(path):
+        context = path
+        path = '.'
+    elif os.path.isfile(path):
+        context = os.path.dirname(path)
+        path = os.path.basename(path)
     else:
-       _untar(input_file, output_dir)
+        raise ValueError(f"Invalid path: {path}")
+
+    return LocalSource(context, path)

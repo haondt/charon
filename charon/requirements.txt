@@ -1,4 +1,2 @@
 croniter
 PyYaml
-cryptography
-google-cloud-storage

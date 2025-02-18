@@ -1,9 +1,3 @@
-gcp_buckets:
-  primary:
-    bucket: 9b70a1a8-a725-4ec2-8073-6d5a6288ebb1-foo-bar
-  secondary:
-    bucket: 26a03f45-de89-4c62-8ef4-1d2fa2d2276a-baz
-
 jobs:
   apples:
     source:
@@ -16,8 +10,8 @@ jobs:
     destination:
       type: local
       name: apples
-      path: ./backups
-      overwrite: true
+      path: ./backups/apples
+      password: mysupersecretpassword
     schedule:
       every: 1d
   bananas:
@@ -28,8 +22,8 @@ jobs:
     destination:
       type: local
       name: bananas
-      path: ./backups
-      overwrite: false
+      path: ./backups/bananas
+      password: bananaspassword
     schedule:
       after: 1h
   coconuts:
@@ -37,9 +31,11 @@ jobs:
       type: http
       url: https://coconuts.com/api/coconuts
     destination:
-      type: gcp_bucket
+      type: gcs_bucket
+      bucket: 9b70a1a8-a725-4ec2-8073-6d5a6288ebb1-foo-bar
       name: coconuts_backup
       config: primary
+      password: DLGJEg5tvfRxI/0C
     schedule:
       after: 0s
       cron: "0 1 5 * *"

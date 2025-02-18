@@ -1,4 +1,4 @@
-from .shared import load_config, configure_utils, get_task
+from .shared import load_config, get_task
 from . import scheduling
 import argparse
 from . import styx
@@ -12,7 +12,6 @@ DEFAULT_CONFIG_FILE = 'charon.yml'
 
 def serve(args):
     config = load_config(args.file)
-    configure_utils(config)
 
     scheduler_factory = scheduling.SchedulerFactory()
     for name, job in config['jobs'].items():
@@ -37,15 +36,21 @@ def main():
     parser.add_argument('-f', '--file', default=DEFAULT_CONFIG_FILE, help='configuration file')
     subparsers = parser.add_subparsers(dest='subcommand')
 
-    styx_parser = subparsers.add_parser('styx')
-    styx.configure_parser(styx_parser)
+    revert_parser = subparsers.add_parser('revert')
+    revert_parser.add_argument('job')
+    revert_parser.add_argument('output_dir')
+
+    apply_parser = subparsers.add_parser('apply')
+    apply_parser.add_argument('job')
 
     args = parser.parse_args()
     if args.subcommand is None:
         _logger.info('running in service mode...')
         serve(args)
-    elif args.subcommand == 'styx':
-        styx.execute(args)
+    elif args.subcommand == 'apply':
+        styx.apply(args)
+    elif args.subcommand == 'apply':
+        styx.revert(args)
 
 if __name__ == '__main__':
     main()
