@@ -8,7 +8,8 @@ import re, signal
 
 _logger = logging.getLogger(__name__)
 
-JOB_TIMEOUT_SECONDS = 30
+# TODO: make this more configurable
+JOB_TIMEOUT_SECONDS = 600
 
 def timeout_handler(signum, frame):
     raise Exception(f'Job failed to complete in the maximum allowed timeframe: {JOB_TIMEOUT_SECONDS} seconds')

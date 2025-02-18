@@ -7,5 +7,3 @@ services:
       - ./credentials.json:/config/credentials.json
       - ./charon.yml:/config/charon.yml
     container_name: charon
-    environment:
-      GOOGLE_APPLICATION_CREDENTIALS: /config/credentials.json
