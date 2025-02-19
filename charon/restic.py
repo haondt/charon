@@ -14,12 +14,12 @@ class Repository:
         self._max_snapshots = max_snapshots
 
     def _run(self, *args: str, capture_output: bool = False, cwd: str | None = None) -> subprocess.CompletedProcess:
-        env = {
+        env = os.environ.copy()
+        env.update({
             "RESTIC_REPOSITORY": self._repo,
-            "RESTIC_PASSWORD": self._password
-        }
-        for k, v in self._env_vars.items():
-            env[k] = v
+            "RESTIC_PASSWORD": self._password,
+        })
+        env.update(self._env_vars)
 
         _logger.info(f'RESTIC_REPOSITORY={self._repo} ' + ' '.join([self._binary, *args]))
         return subprocess.run([self._binary, *args], env=env, text=True, capture_output=capture_output, check=True, cwd=cwd)
@@ -67,14 +67,14 @@ class Repository:
     def prune(self) -> None:
         self._run("prune")
 
-def get_repository(config) -> Repository:
+def get_repository(name, config) -> Repository:
     backend_type = config['backend']['type']
     if backend_type == "local":
         return get_local_repository(config)
     if backend_type == "gcs_bucket":
         return get_gcs_repository(config)
-    if backend_type == "sftp":
-        return get_sftp_repository(config)
+    if backend_type == "rclone":
+        return get_rclone_repository(name, config)
     raise KeyError(f'unknown backend type: {backend_type}')
 
 def get_common_kwargs(config):
@@ -107,15 +107,20 @@ def get_gcs_repository(config) -> Repository:
     }
     return Repository(**kwargs)
 
-# SFTP repository (e.g., Hetzner Storage Box)
-def get_sftp_repository(config) -> Repository:
-    path = os.path.normpath(config['backend']['path']).lstrip('/')
-    user = config['backend']['user']
-    host = config['backend']['host']
-    repo = f"sftp:{user}@{host}:{path}"
+# rclone repository
+def get_rclone_repository(name, config) -> Repository:
+    path = os.path.normpath(config['backend']['path'])
+    repo = f"rclone:{name}:{path}"
+
+    rclone_config = config['backend']['rclone_config']
+    rclone_config_name = name.upper()
+    env_vars = { }
+    for k, v in rclone_config.items():
+        env_vars[f'RCLONE_CONFIG_{rclone_config_name}_{k.upper()}'] = str(v)
 
     kwargs = get_common_kwargs(config)
     kwargs['repo'] = repo
+    kwargs['env_vars'] = env_vars
     return Repository(**kwargs)
 
 

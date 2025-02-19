@@ -23,7 +23,7 @@ def get_task(name, config):
     else:
         raise KeyError(f'unknown source type: {source_type}')
 
-    repo = restic.get_repository(repo_config)
+    repo = restic.get_repository(name, repo_config)
 
     def inner():
         nonlocal source_factory

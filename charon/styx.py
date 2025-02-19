@@ -39,6 +39,6 @@ def revert(args):
 
     _logger.info(f'reverting job: {name} into {output_dir}')
 
-    repo = restic.get_repository(job['repository'])
+    repo = restic.get_repository(name, job['repository'])
     repo.restore(output_dir)
 
