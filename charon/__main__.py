@@ -17,15 +17,16 @@ def serve(args):
     for name, job in config['jobs'].items():
         schedule = job['schedule']
         task = get_task(name, job)
+        timeout = schedule.get('timeout', None)
         if 'cron' in schedule:
             crontab = schedule['cron']
-            scheduler_factory.add_cron(name, task, crontab)
+            scheduler_factory.add_cron(name, task, crontab, timeout=timeout)
         if 'after' in schedule:
             delay = schedule['after']
-            scheduler_factory.add_once(name, task, delay)
+            scheduler_factory.add_once(name, task, delay, timeout=timeout)
         if 'every' in schedule:
             delay = schedule['every']
-            scheduler_factory.add_every(name, task, delay)
+            scheduler_factory.add_every(name, task, delay, timeout=timeout)
 
     scheduler = scheduler_factory.build()
 
