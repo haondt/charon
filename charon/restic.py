@@ -6,11 +6,12 @@ import logging
 _logger = logging.getLogger(__name__)
 
 class Repository:
-    def __init__(self, repo: str, password: str, binary: str = "restic", env_vars: dict[str, str]={}):
+    def __init__(self, repo: str, password: str, binary: str = "restic", env_vars: dict[str, str]={}, max_snapshots: int|None = None):
         self._repo = repo
         self._password = password
         self._binary = binary
         self._env_vars = env_vars
+        self._max_snapshots = max_snapshots
 
     def _run(self, *args: str, capture_output: bool = False, cwd: str | None = None) -> subprocess.CompletedProcess:
         env = {
@@ -31,6 +32,9 @@ class Repository:
 
     def backup(self, paths: list[str], cwd: str|None=None) -> None:
         self._run("backup", *paths, cwd=cwd)
+        if (self._max_snapshots == 0 or self._max_snapshots == None):
+            return
+        self._run("forget", "--keep-last", str(self._max_snapshots))
 
     def exists(self):
         try:
@@ -73,11 +77,21 @@ def get_repository(config) -> Repository:
         return get_sftp_repository(config)
     raise KeyError(f'unknown backend type: {backend_type}')
 
+def get_common_kwargs(config):
+    kwargs = { 
+        'password': config['password']
+    }
+    if 'max_snapshots' in config:
+        kwargs['max_snapshots'] = config['max_snapshots']
+    return kwargs
 
 # file based repository
 def get_local_repository(config) -> Repository:
     path = os.path.abspath(config['backend']['path'])
-    return Repository(repo=f"local:{path}", password=config['password'])
+
+    kwargs = get_common_kwargs(config)
+    kwargs['repo'] = f"local:{path}"
+    return Repository(**kwargs)
 
 # Google Cloud Storage (GCS) repository
 def get_gcs_repository(config) -> Repository:
@@ -85,7 +99,13 @@ def get_gcs_repository(config) -> Repository:
     credentials = os.path.abspath(config['backend']['credentials'])
     bucket = config['backend']['bucket']
     repo = f"gs:{bucket}:{path}"
-    return Repository(repo=repo, password=config['password'], env_vars={'GOOGLE_APPLICATION_CREDENTIALS': credentials})
+
+    kwargs = get_common_kwargs(config)
+    kwargs['repo'] = repo
+    kwargs['env_vars'] = {
+        'GOOGLE_APPLICATION_CREDENTIALS': credentials
+    }
+    return Repository(**kwargs)
 
 # SFTP repository (e.g., Hetzner Storage Box)
 def get_sftp_repository(config) -> Repository:
@@ -93,4 +113,9 @@ def get_sftp_repository(config) -> Repository:
     user = config['backend']['user']
     host = config['backend']['host']
     repo = f"sftp:{user}@{host}:{path}"
-    return Repository(repo=repo, password=config['password'])
+
+    kwargs = get_common_kwargs(config)
+    kwargs['repo'] = repo
+    return Repository(**kwargs)
+
+

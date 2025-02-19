@@ -32,3 +32,15 @@ jobs:
         path: repo_3
     schedule:
       after: 0s
+  test_4:
+    source:
+      type: local
+      path: file.txt
+    repository:
+      password: abcdefghijkl
+      max_snapshots: 3
+      backend:
+        type: local
+        path: repo_4
+    schedule:
+      after: 0s
