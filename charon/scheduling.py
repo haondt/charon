@@ -1,4 +1,4 @@
-import sched, time
+import sched, time, math
 from typing import Callable
 from croniter import croniter
 from dataclasses import dataclass 
@@ -8,10 +8,15 @@ import re, signal
 
 _logger = logging.getLogger(__name__)
 
-JOB_TIMEOUT_SECONDS = 30
+class TimeoutError(Exception):
+    def __init__(self, message):
+        super().__init__(message)
 
-def timeout_handler(signum, frame):
-    raise Exception(f'Job failed to complete in the maximum allowed timeframe: {JOB_TIMEOUT_SECONDS} seconds')
+def timeout_handler(job_timeout_seconds: int):
+    def inner(signum, frame):
+        nonlocal job_timeout_seconds
+        raise TimeoutError(f'Job failed to complete in the maximum allowed timeframe: {job_timeout_seconds} seconds')
+    return inner
 
 @dataclass
 class Job:
@@ -19,22 +24,35 @@ class Job:
     itr: Callable[[], float]
     task: Callable
     repeat: bool = True
+    timeout_seconds: int | None = None
 
     def schedule_next(self, scheduler):
         next = self.itr()
+        now = time.time()
+
+        # prevent iteration from falling behind
+        if self.repeat:
+            while next < now:
+                next = self.itr()
+
         scheduler.enterabs(next, 1, self.run_and_reschedule, (scheduler,))
 
     def run_and_reschedule(self, scheduler):
         _logger.info(f"Executing job {self.name}")
-        signal.signal(signal.SIGALRM, timeout_handler)
-        try:
-            signal.alarm(JOB_TIMEOUT_SECONDS)
+
+        if self.timeout_seconds is not None:
+            signal.signal(signal.SIGALRM, timeout_handler(self.timeout_seconds))
             try:
                 self.task()
             except Exception as e:
                 _logger.exception(f"Job {self.name} failed: {e}")
-        finally:
-            signal.alarm(0)
+            finally:
+                signal.alarm(0)
+        else:
+            try:
+                self.task()
+            except Exception as e:
+                _logger.exception(f"Job {self.name} failed: {e}")
 
         if self.repeat:
             self.schedule_next(scheduler)
@@ -53,9 +71,10 @@ class SchedulerFactory:
     def __init__(self):
         self._job_factories: list[Callable[[], Job]] = []
 
-    def add_cron(self, name: str, task: Callable, crontab: str):
+    def add_cron(self, name: str, task: Callable, crontab: str, timeout: str|None=None):
         itr = croniter(crontab, time.time())
-        job_factory = lambda: Job(name, itr.get_next, task)
+        timeout_seconds = None if timeout is None else int(math.ceil(self._parse_time_delta(timeout).total_seconds()))
+        job_factory = lambda: Job(name, itr.get_next, task, timeout_seconds=timeout_seconds)
         self._job_factories.append(job_factory)
 
     def _parse_time_delta(self, s: str):
@@ -72,16 +91,18 @@ class SchedulerFactory:
             seconds=int(gd['s'] or 0)
         )
 
-    def add_once(self, name: str, task: Callable, delay: str):
+    def add_once(self, name: str, task: Callable, delay: str, timeout: str|None=None):
         period = self._parse_time_delta(delay)
         itr = TimeDeltaIterator(period, time.time())
-        job_factory = lambda: Job(name, itr.get_next, task, False)
+        timeout_seconds = None if timeout is None else int(math.ceil(self._parse_time_delta(timeout).total_seconds()))
+        job_factory = lambda: Job(name, itr.get_next, task, False, timeout_seconds=timeout_seconds)
         self._job_factories.append(job_factory)
 
-    def add_every(self, name: str, task: Callable, delay: str):
+    def add_every(self, name: str, task: Callable, delay: str, timeout: str|None=None):
         period = self._parse_time_delta(delay)
         itr = TimeDeltaIterator(period, time.time())
-        job_factory = lambda: Job(name, itr.get_next, task)
+        timeout_seconds = None if timeout is None else int(math.ceil(self._parse_time_delta(timeout).total_seconds()))
+        job_factory = lambda: Job(name, itr.get_next, task, timeout_seconds=timeout_seconds)
         self._job_factories.append(job_factory)
 
     def build(self):

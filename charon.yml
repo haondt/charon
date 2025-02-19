@@ -1,45 +1,47 @@
-gcp_buckets:
-  primary:
-    bucket: 9b70a1a8-a725-4ec2-8073-6d5a6288ebb1-foo-bar
-  secondary:
-    bucket: 26a03f45-de89-4c62-8ef4-1d2fa2d2276a-baz
+gcs_backend: &gcs_backend
+  type: gcs_bucket
+  bucket: 9e4376a1-a0ce-4ff4-a67b-8af4a54d15c1-foo
+  credentials: ./credentials.json
 
 jobs:
   apples:
     source:
       type: http
       url: http://apples.com/api/apples
-      method: post
-      ext: json
-      auth:  
+      method: get # default is get
+      ext: json # default is txt
+      auth: # optional
         bearer: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjAsImZvbyI6ImJhciJ9.VxZtqbzg3icdEtYS7VIhndnsmwoJnw7HNeznE5Ly174
-    destination:
-      type: local
-      name: apples
-      path: ./backups
-      overwrite: true
+    repository:
+      password: supersecretpassword
+      create: false # default is true
+      backend:
+        type: local
+        path: ./backups/apples
     schedule:
       every: 1d
+      timeout: 1h # optional
   bananas:
     source:
       type: local
-      path: /home/bananauser/bananas
-      encrypt: 4B711364F821F0DF6C1FA7F4FDDF3435B9B715B1BF5C698B0D4B65A5143CB6F9
-    destination:
-      type: local
-      name: bananas
-      path: ./backups
-      overwrite: false
+      path: /home/noah/syncthing/notes/The Vault v2
+    repository:
+      password: 4B711364F821F0DF6C1FA7F4FDDF3435B9B715B1BF5C698B0D4B65A5143CB6F9
+      backend:
+        type: local
+        path: ./backups/bananas
     schedule:
       after: 1h
   coconuts:
     source:
       type: http
       url: https://coconuts.com/api/coconuts
-    destination:
-      type: gcp_bucket
-      name: coconuts_backup
-      config: primary
+    repository:
+      password: DLGJEg5tvfRxI/0C
+      backend: 
+        <<: *gcs_backend
+        path: coconuts_backup
     schedule:
       after: 0s
       cron: "0 1 5 * *"
+
