@@ -15,10 +15,7 @@ echo  "more" >> file.txt
 python3 -m charon -f charon.test.yml apply test_4
 echo  "more" >> file.txt
 python3 -m charon -f charon.test.yml apply test_4
-# mkdir revert_output
-# python3 -m charon -f charon.test.yml revert test_4 revert_output
-#
-#
+
 expected_output="3"
 real_output="$(RESTIC_PASSWORD=abcdefghijkl restic -r repo_4 snapshots --json | jq length)"
 

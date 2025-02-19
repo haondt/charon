@@ -20,6 +20,7 @@ jobs:
         path: ./backups/apples
     schedule:
       every: 1d
+      timeout: 1h # optional
   bananas:
     source:
       type: local
@@ -43,3 +44,4 @@ jobs:
     schedule:
       after: 0s
       cron: "0 1 5 * *"
+

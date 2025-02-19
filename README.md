@@ -1,6 +1,6 @@
 # charon
 
-charon is a utility for backing up data from one location to another at regular intervals.
+charon is a utility for automating data backups. charon uses [`restic`](https://restic.net/) for managing the backups.
 
 # table of contents
 
@@ -8,9 +8,9 @@ charon is a utility for backing up data from one location to another at regular 
 - [usage](#usage)
 - [configuration](#configuration)
     - [sources](#sources)
-    - [destinations](#destinations)
+    - [repository](#repository)
     - [schedule](#schedule)
-- [styx](#styx)
+- [cli](#cli)
 - [tests](#tests)
 
 # installation
@@ -54,25 +54,24 @@ charon will look for a config file at `charon.yml`. a different path can be spec
 charon -f MY_CONFIG.yml
 ```
 
-charon uses the `sched` library for scheduling tasks, meaning charon will exit when there are no more tasks to run. this is possible depending on the configuration.
+charon uses the `sched` library for scheduling tasks, which introduces some caveats:
+
+- charon will exit when there are no more jobs to run. this is possible depending on the configuration
+- all jobs are run on the same thread, sequentially
+- the duration of the execution of a job can interfere with it's schedule. if a job misses a run due to the previous run still completing, the run is skipped and rescheduled at the next repetition
 
 # configuration
 
 configuration is given as a yaml file with the following structure:
 
 ```yml
-# NOTE: to use gcp buckets, charon must be run in an environment where GOOGLE_APPLICATION_CREDENTIALS exists
-gcp_buckets: # optional, configuration for gcp buckets
-    my_bucket:
-        bucket: 1234-name-of-my-bucket-in-gcp
-
 jobs:
     my_job:
         source: # where data is coming from
             type: type_of_source
             # ...
-        destination: # where data is going
-            type: type_of_destination
+        repository: # configuration for restic repository
+            password: myresticpassword
             # ...
         schedule: # how often to run job
             # ...
@@ -89,12 +88,9 @@ all sources will have a few shared fields:
 ```yaml
 source:
     type: local # determines how to interpret the source config
-    encrypt: 4B71... # optional, 32 byte hex-encoded encryption key
-
 ```
 
-the data from the source will be archived in a gz'd tar file. if an encryption key is provided, the tar file will then be encrypted.
-
+the data from the source will be backed up using `restic`. If the source is coming from somewhere external, like an http request, it will be cached in a temporary directory before being run through `restic`.
 
 below are the possible ways you can configure the source object, based on the `type` key.
 
@@ -106,7 +102,6 @@ this pulls from a local file
 source:
     type: local
     path: /path/to/data # path to data to back up. can be a file or a directory. does not use variable expansion
-
 ```
 
 **http**
@@ -133,40 +128,62 @@ source:
     db_path: /path/to/db_file.db
 ```
 
-## destinations
+## repository
 
-all destinations will also have some shared fields
+the `repository` section is for configuring the `restic` repository.
 
 ```yml
-destination:
-    type: local # determines how to interpret the destination config
-    name: my_output # the name of the output file, can include path seperators (foo/bar)
+repository:
+    password: my-restic-password # password for repository
+    create: false # optional, whether or not charon should create the repository if it doesn't exist. default is true
+    backend: # configuration for the restic backend
+        type: local # determines how to interpret the backend config
 ```
 
-**note**: the name of the file (where applicable) in the destination will be `destination.name` + a file extension determined by the source.
-
-bewlow are the possible ways you can configure the destination object, based on the `type` key.
+below are the possible ways you can configure the `repository.backend` object, based on the `type` key.
 
 **local**
 
-this pushes to a local file
+this pushes to a local directory
 
 ```yml
-destination:
+backend:
     type: local
-    path: ./foo # must be a directory, file will be created inside this dir
-    overwrite: false # optional, whether or not to overwrite an existing output file. defaults to false
+    path: ./foo/bar # must be a directory
 ```
 
-**gcp_bucket**
+**gcs_bucket**
 
-uploads to a google cloud storage bucket. requires `gcp_buckets` to be configured, and `GOOGLE_APPLICATION_CREDENTIALS` envrionment variable.
-
+uploads to a google cloud storage bucket
 
 ```yml
-destination:
-    type: gcp_bucket
-    config: my-bucket # name of config in gcp_buckets:
+backend:
+    type: gcs_bucket
+    bucket: 9e4376a1-a0ce-4ff4-a67b-8af4a54d15c1-foo # bucket name
+    credentials: ./credentials.json # path to credentials file for service account with access to bucket
+    path: /path/to/repo # path to repository inside bucket
+```
+
+**rclone**
+
+uses rclone as a target.
+
+the `backend.rclone_config` object will be used to configure rclone. each key in that map will be configured to an environment variable named `f'{RCLONE_CONFIG_{job.upper()}_{key.upper()}'}`. for example, the config `jobs.myjob.backend.rclone_config.host: myhost.com` would be converted to `RCLONE_CONFIG_MYJOB_HOST=myhost.com`.
+
+> [!NOTE]
+> the password needs to be stored in its obscured form, **charon will not obscure the password for you**. you can obscure your password using `rclone obscure`
+
+```yml
+backend:
+    type: rclone
+    path: path/to/repo # path within rclone target for repository
+    rclone_config: # configuration to pass through to rclone env vars
+        type: ftp
+        host: my-host.com
+        user: my-username
+        pass: ... # obscured password
+        port: 21
+        explicit_tls: "true"
 ```
 
 ## schedule
@@ -212,21 +229,31 @@ schedule:
     every: 2d
 ```
 
-# styx
+**timeout**
 
-charon includes a subcommand, `styx`, that will run a job once, immediately.
+optionally, you can specify a job timeout. if the job (both the fetch and the upload) do not complete within the timeout, the job will be cancelled.
 
-```bash
-charon styx apply MY_JOB
+```yml
+schedule:
+    every: 1d
+    timeout: 15m
 ```
 
-styx can also run the job in reverse, pulling it from the destination and dumping it to a given directory
+# cli
+
+charon provides a cli for manual work. the `apply` command can be used to run a job once, immediately.
 
 ```bash
-charon styx revert MY_JOB OUTPUT_DIRECTORY
+charon apply MY_JOB
 ```
 
-you can specify the config file before calling styx
+charon can also run the job in reverse, pulling it from the destination and dumping it to a given directory
+
+```bash
+charon revert MY_JOB OUTPUT_DIRECTORY
+```
+
+you can specify the config file before running either command
 
 ```bash
 charon -f MY_CONFIG.yml styx apply MY_JOB
@@ -234,7 +261,7 @@ charon -f MY_CONFIG.yml styx apply MY_JOB
 
 see tests for more examples.
 
-# tests
+## tests
 
 each `test*.sh` file will run some commands (must be run inside the tests folder, with a python environment set up for charon), and has a comment in the file detailing the expected output. 
 
