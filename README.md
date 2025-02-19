@@ -136,6 +136,7 @@ the `repository` section is for configuring the `restic` repository.
 repository:
     password: my-restic-password # password for repository
     create: false # optional, whether or not charon should create the repository if it doesn't exist. default is true
+    max_snapshots: 3 # optional, prune old snapshots to keep this amount or fewer snapshots in the repository
     backend: # configuration for the restic backend
         type: local # determines how to interpret the backend config
 ```
