@@ -77,7 +77,6 @@ def prepare_http_source(name, config):
             for t in  transforms:
                 if 'jq' in t:
                     x = json.dumps(jq.compile(t['jq']).input_value(json.loads(x)).first())
-                    print(x)
             return x
         transform = inner
 
