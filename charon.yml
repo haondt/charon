@@ -7,9 +7,11 @@ jobs:
   apples:
     source:
       type: http
-      url: http://apples.com/api/apples
+      url: http://apples.com/api/apples # can be replaced with configs
       method: get # default is get
       ext: json # default is txt
+      transform: # optional
+        - jq: .[]+1
       auth: # optional
         bearer: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjAsImZvbyI6ImJhciJ9.VxZtqbzg3icdEtYS7VIhndnsmwoJnw7HNeznE5Ly174
     repository:
@@ -35,7 +37,13 @@ jobs:
   coconuts:
     source:
       type: http
-      url: https://coconuts.com/api/coconuts
+      targets: # can be replaced with url
+        shells: # will go into shell.txt
+          url: https://coconuts.com/api/coconuts?t=shell
+        meats: # will go into meat.txt
+          url: https://coconuts.com/api/othercoconuts?t=meat
+        waters: # will go into waters.txt
+          url: https://coconuts.com/api/othercoconuts?t=water
     repository:
       password: DLGJEg5tvfRxI/0C
       backend: 
@@ -44,4 +52,3 @@ jobs:
     schedule:
       after: 0s
       cron: "0 1 5 * *"
-

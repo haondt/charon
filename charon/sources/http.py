@@ -1,24 +1,26 @@
 import tempfile
 import os
+import jq, json
 import requests
 from requests.models import HTTPError
+from typing import Callable
 
 class HttpSource:
-    def __init__(self, request: requests.PreparedRequest, filename: str):
-        self._request = request
-        self._filename = filename
+    def __init__(self, reqs: list[tuple[requests.PreparedRequest, str, Callable[[str], str]]]):
+        self._requests = reqs
         self._td: tempfile.TemporaryDirectory | None = None
 
     def __enter__(self):
         self._td = tempfile.TemporaryDirectory()
 
-        response = requests.Session().send(self._request, allow_redirects=False, timeout=30)
-        if response.status_code != 200:
-            raise HTTPError(f"received status code {response.status_code}")
-
-        path = os.path.join(self._td.name, self._filename)
-        with open(path, 'w') as f:
-            f.write(response.text)
+        for req, filename, transformation in self._requests:
+            response = requests.Session().send(req, allow_redirects=False, timeout=30)
+            if response.status_code != 200:
+                raise HTTPError(f"received status code {response.status_code} from url {req.url}")
+            text = transformation(response.text) 
+            path = os.path.join(self._td.name, filename)
+            with open(path, 'w') as f:
+                f.write(text)
         return self
 
     def __exit__(self, *_):
@@ -40,6 +42,18 @@ class HttpSource:
         return "."
 
 def create_http_source(name, config):
+    targets = []
+
+    if 'url' in config:
+        targets.append(prepare_http_source(name, config))
+
+    if 'targets' in config:
+        for k, v in config['targets'].items():
+            targets.append(prepare_http_source(k, v))
+
+    return HttpSource(targets)
+
+def prepare_http_source(name, config):
     url = config['url']
     headers = {}
     auth = config.get('auth')
@@ -54,4 +68,18 @@ def create_http_source(name, config):
         headers = headers
     ).prepare()
 
-    return HttpSource(request, f'{name}.{extension}')
+    transforms = config.get('transform', [])
+    if len(transforms) == 0:
+        transform = lambda x: x
+    else:
+        def inner(x: str):
+            nonlocal transforms
+            for t in  transforms:
+                if 'jq' in t:
+                    x = json.dumps(jq.compile(t['jq']).input_value(json.loads(x)).first())
+                    print(x)
+            return x
+        transform = inner
+
+    return (request, f"{name}.{extension}", transform)
+

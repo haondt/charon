@@ -116,7 +116,29 @@ source:
     ext: json # optional, extension to use for saved file, defaults to txt
     auth:  # optional, authentication configuration
         bearer: eyJhbGc... # optional, bearer token
+    transform: # optional, list of transforms to perform on the response body
+     - jq: .[] + 1 # uses the jq library to run `jq.compile(<PATTERN>).input_text(<PAYLOAD>).first()`
 ```
+
+you can also make multiple requests and save the results to multiple files
+
+```yml
+source:
+    type: http
+    targets:
+        com: # will be saved to com.json
+            url: http://example.com/ # url to make request to
+            method: get # optional, request method, defaults to get
+            ext: json # optional, extension to use for saved file, defaults to txt
+            auth:  # optional, authentication configuration
+                bearer: eyJhbGc... # optional, bearer token
+        uk: # will be saved to uk.zip
+            url: http://example.co.uk/
+            ext: zip
+```
+
+`url` and `targets` can both be provided, but at least one _must_ be provided.
+
 
 **sqlite**
 

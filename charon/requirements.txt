@@ -1,3 +1,4 @@
 croniter
 requests
 PyYaml
+jq
