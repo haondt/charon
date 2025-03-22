@@ -279,7 +279,7 @@ charon revert MY_JOB OUTPUT_DIRECTORY
 you can specify the config file before running either command
 
 ```bash
-charon -f MY_CONFIG.yml styx apply MY_JOB
+charon -f MY_CONFIG.yml apply MY_JOB
 ```
 
 see tests for more examples.
