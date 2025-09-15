@@ -3,6 +3,7 @@ import json
 import os
 import logging
 
+MAX_OUTPUT_LEN = 500
 _logger = logging.getLogger(__name__)
 
 class Repository:
@@ -19,12 +20,36 @@ class Repository:
         env.update({
             "RESTIC_REPOSITORY": self._repo,
             "RESTIC_PASSWORD": self._password,
+            "RESTIC_HOST": f"charon-{self._name}",
         })
         env.update(self._env_vars)
 
-        _logger.info(f'[{self._name}] ' + ' '.join([self._binary, *args]))
+        log_message = f'[{self._name}] ' + ' '.join([self._binary, *args])
+        log_extra = {
+            'charon.name': self._name,
+            'charon.restic.command': ' '.join([self._binary, *args])
+        }
 
-        return subprocess.run([self._binary, *args], env=env, text=True, capture_output=capture_output, check=True, cwd=cwd)
+        try:
+            result = subprocess.run([self._binary, *args], env=env, text=True, capture_output=True, check=True, cwd=cwd)
+            stdout = (result.stdout[:MAX_OUTPUT_LEN-3] + '...') if result.stdout and len(result.stdout) > MAX_OUTPUT_LEN else result.stdout
+            stderr = (result.stderr[:MAX_OUTPUT_LEN-3] + '...') if result.stderr and len(result.stderr) > MAX_OUTPUT_LEN else result.stderr
+            log_extra['charon.restic.stdout'] = stdout
+            log_extra['charon.restic.stderr'] = stderr
+        except subprocess.CalledProcessError as e:
+            stdout = (e.stdout[:MAX_OUTPUT_LEN-3] + '...') if e.stdout and len(e.stdout) > MAX_OUTPUT_LEN else e.stdout
+            stderr = (e.stderr[:MAX_OUTPUT_LEN-3] + '...') if e.stderr and len(e.stderr) > MAX_OUTPUT_LEN else e.stderr
+            log_extra['charon.restic.stdout'] = stdout
+            log_extra['charon.restic.stderr'] = stderr
+            log_extra['charon.restic.returncode'] = e.returncode
+            log_extra['charon.error'] = str(e)
+
+            _logger.error(f'command failed', extra=log_extra)
+            raise
+
+        _logger.info(log_message, extra=log_extra)
+        return result
+
 
     def __str__(self):
         return f'Restic Repository(repo={self._repo})'
@@ -33,10 +58,10 @@ class Repository:
         self._run("init")
 
     def backup(self, paths: list[str], cwd: str|None=None) -> None:
-        self._run("backup", *paths, cwd=cwd)
+        self._run("backup", "--skip-if-unchanged", *paths, cwd=cwd)
         if (self._max_snapshots == 0 or self._max_snapshots == None):
             return
-        self._run("forget", "--keep-last", str(self._max_snapshots))
+        self._run("forget", "--keep-last", str(self._max_snapshots), "--prune", "-g", "hosts")
 
     def exists(self):
         try:
@@ -63,12 +88,6 @@ class Repository:
     def restore(self, target: str, snapshot_id: str="latest") -> None:
         self._run("restore", snapshot_id, "--target", target)
 
-    def forget(self, snapshot_id: str) -> None:
-        self._run("forget", snapshot_id)
-
-    def prune(self) -> None:
-        self._run("prune")
-
 def get_repository(name, config) -> Repository:
     backend_type = config['backend']['type']
     if backend_type == "local":
@@ -80,7 +99,7 @@ def get_repository(name, config) -> Repository:
     raise KeyError(f'unknown backend type: {backend_type}')
 
 def get_common_kwargs(name, config):
-    kwargs = { 
+    kwargs = {
         'password': config['password'],
         'name': name
     }

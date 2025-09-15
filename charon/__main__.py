@@ -2,11 +2,26 @@ from .shared import load_config, get_task
 from . import scheduling
 import argparse
 from . import styx
-import logging
+import logging, json
 
 _logger = logging.getLogger(__name__)
-LOG_TEMPLATE = '[%(asctime)s] [%(levelname)s] %(name)s: %(message)s'
-logging.basicConfig(format=LOG_TEMPLATE, level=logging.INFO)
+
+class JsonFormatter(logging.Formatter):
+    def format(self, record):
+        data = {
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "name": record.name,
+            "time": self.formatTime(record),
+        }
+        for k, v in record.__dict__.items():
+            if k.startswith("charon."):
+                data[k] = v
+        return json.dumps(data)
+
+logging_handler = logging.StreamHandler()
+logging_handler.setFormatter(JsonFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[logging_handler])
 
 DEFAULT_CONFIG_FILE = 'charon.yml'
 

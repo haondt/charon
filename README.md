@@ -7,9 +7,9 @@ charon is a utility for automating data backups. charon uses [`restic`](https://
 - [installation](#installation)
 - [usage](#usage)
 - [configuration](#configuration)
-    - [sources](#sources)
-    - [repository](#repository)
-    - [schedule](#schedule)
+  - [sources](#sources)
+  - [repository](#repository)
+  - [schedule](#schedule)
 - [cli](#cli)
 - [tests](#tests)
 
@@ -66,17 +66,17 @@ configuration is given as a yaml file with the following structure:
 
 ```yml
 jobs:
-    my_job:
-        source: # where data is coming from
-            type: type_of_source
-            # ...
-        repository: # configuration for restic repository
-            password: myresticpassword
-            # ...
-        schedule: # how often to run job
-            # ...
-    my_job_2:
-        # ...
+  my_job:
+    source: # where data is coming from
+      type: type_of_source
+      # ...
+    repository: # configuration for restic repository
+      password: myresticpassword
+      # ...
+    schedule:# how often to run job
+      # ...
+  my_job_2:
+    # ...
 ```
 
 see `charon.yml` for an example config.
@@ -87,7 +87,7 @@ all sources will have a few shared fields:
 
 ```yaml
 source:
-    type: local # determines how to interpret the source config
+  type: local # determines how to interpret the source config
 ```
 
 the data from the source will be backed up using `restic`. If the source is coming from somewhere external, like an http request, it will be cached in a temporary directory before being run through `restic`.
@@ -100,8 +100,8 @@ this pulls from a local file
 
 ```yml
 source:
-    type: local
-    path: /path/to/data # path to data to back up. can be a file or a directory. does not use variable expansion
+  type: local
+  path: /path/to/data # path to data to back up. can be a file or a directory. does not use variable expansion
 ```
 
 **http**
@@ -110,35 +110,34 @@ performs an http request, and saves the response body to a file
 
 ```yml
 source:
-    type: http
-    url: http://example.com/ # url to make request to
-    method: get # optional, request method, defaults to get
-    ext: json # optional, extension to use for saved file, defaults to txt
-    auth:  # optional, authentication configuration
-        bearer: eyJhbGc... # optional, bearer token
-    transform: # optional, list of transforms to perform on the response body
-     - jq: .[] + 1 # uses the jq library to run `jq.compile(<PATTERN>).input_text(<PAYLOAD>).first()`
+  type: http
+  url: http://example.com/ # url to make request to
+  method: get # optional, request method, defaults to get
+  ext: json # optional, extension to use for saved file, defaults to txt
+  auth: # optional, authentication configuration
+    bearer: eyJhbGc... # optional, bearer token
+  transform: # optional, list of transforms to perform on the response body
+    - jq: .[] + 1 # uses the jq library to run `jq.compile(<PATTERN>).input_text(<PAYLOAD>).first()`
 ```
 
 you can also make multiple requests and save the results to multiple files
 
 ```yml
 source:
-    type: http
-    targets:
-        com: # will be saved to com.json
-            url: http://example.com/ # url to make request to
-            method: get # optional, request method, defaults to get
-            ext: json # optional, extension to use for saved file, defaults to txt
-            auth:  # optional, authentication configuration
-                bearer: eyJhbGc... # optional, bearer token
-        uk: # will be saved to uk.zip
-            url: http://example.co.uk/
-            ext: zip
+  type: http
+  targets:
+    com: # will be saved to com.json
+      url: http://example.com/ # url to make request to
+      method: get # optional, request method, defaults to get
+      ext: json # optional, extension to use for saved file, defaults to txt
+      auth: # optional, authentication configuration
+        bearer: eyJhbGc... # optional, bearer token
+    uk: # will be saved to uk.zip
+      url: http://example.co.uk/
+      ext: zip
 ```
 
 `url` and `targets` can both be provided, but at least one _must_ be provided.
-
 
 **sqlite**
 
@@ -146,8 +145,8 @@ performs a backup on an sqlite3 db
 
 ```yml
 source:
-    type: sqlite
-    db_path: /path/to/db_file.db
+  type: sqlite
+  db_path: /path/to/db_file.db
 ```
 
 ## repository
@@ -156,11 +155,11 @@ the `repository` section is for configuring the `restic` repository.
 
 ```yml
 repository:
-    password: my-restic-password # password for repository
-    create: false # optional, whether or not charon should create the repository if it doesn't exist. default is true
-    max_snapshots: 3 # optional, prune old snapshots to keep this amount or fewer snapshots in the repository
-    backend: # configuration for the restic backend
-        type: local # determines how to interpret the backend config
+  password: my-restic-password # password for repository
+  create: false # optional, whether or not charon should create the repository if it doesn't exist. default is true
+  max_snapshots: 3 # optional, prune old snapshots to keep this amount or fewer snapshots in the repository
+  backend: # configuration for the restic backend
+    type: local # determines how to interpret the backend config
 ```
 
 below are the possible ways you can configure the `repository.backend` object, based on the `type` key.
@@ -171,8 +170,8 @@ this pushes to a local directory
 
 ```yml
 backend:
-    type: local
-    path: ./foo/bar # must be a directory
+  type: local
+  path: ./foo/bar # must be a directory
 ```
 
 **gcs_bucket**
@@ -181,10 +180,10 @@ uploads to a google cloud storage bucket
 
 ```yml
 backend:
-    type: gcs_bucket
-    bucket: 9e4376a1-a0ce-4ff4-a67b-8af4a54d15c1-foo # bucket name
-    credentials: ./credentials.json # path to credentials file for service account with access to bucket
-    path: /path/to/repo # path to repository inside bucket
+  type: gcs_bucket
+  bucket: 9e4376a1-a0ce-4ff4-a67b-8af4a54d15c1-foo # bucket name
+  credentials: ./credentials.json # path to credentials file for service account with access to bucket
+  path: /path/to/repo # path to repository inside bucket
 ```
 
 **rclone**
@@ -198,15 +197,15 @@ the `backend.rclone_config` object will be used to configure rclone. each key in
 
 ```yml
 backend:
-    type: rclone
-    path: path/to/repo # path within rclone target for repository
-    rclone_config: # configuration to pass through to rclone env vars
-        type: ftp
-        host: my-host.com
-        user: my-username
-        pass: ... # obscured password
-        port: 21
-        explicit_tls: "true"
+  type: rclone
+  path: path/to/repo # path within rclone target for repository
+  rclone_config: # configuration to pass through to rclone env vars
+    type: ftp
+    host: my-host.com
+    user: my-username
+    pass: ... # obscured password
+    port: 21
+    explicit_tls: "true"
 ```
 
 ## schedule
@@ -221,7 +220,7 @@ note: this program uses [croniter](https://github.com/kiorky/croniter) for sched
 
 ```yml
 schedule:
-    cron: "* * * * * */10" # every 10 seconds
+  cron: "* * * * * */10" # every 10 seconds
 ```
 
 **one shot**
@@ -230,16 +229,16 @@ this runs once, after the given delay. the delay is given in the `1d2h3m4s` form
 
 ```yml
 schedule:
-    after: 1d # wait 1 day, then run once
+  after: 1d # wait 1 day, then run once
 ```
 
 **intervals**
 
-this runs at regular intervals, using the one shot format, starting from the time charon is run. 
+this runs at regular intervals, using the one shot format, starting from the time charon is run.
 
 ```yml
 schedule:
-    every: 1h30m # run every hour and a half
+  every: 1h30m # run every hour and a half
 ```
 
 **combinations**
@@ -248,8 +247,8 @@ you can combine schedules, for example to run immediately, and then every other 
 
 ```yml
 schedule:
-    after: 0s
-    every: 2d
+  after: 0s
+  every: 2d
 ```
 
 **timeout**
@@ -258,8 +257,8 @@ optionally, you can specify a job timeout. if the job (both the fetch and the up
 
 ```yml
 schedule:
-    every: 1d
-    timeout: 15m
+  every: 1d
+  timeout: 15m
 ```
 
 # cli
@@ -286,11 +285,10 @@ see tests for more examples.
 
 ## tests
 
-each `test*.sh` file will run some commands (must be run inside the tests folder, with a python environment set up for charon), and has a comment in the file detailing the expected output. 
+each `test*.sh` file will run some commands (must be run inside the tests folder, with a python environment set up for charon), and has a comment in the file detailing the expected output.
 
 ```bash
-cd tests
-./test.sh
-./test2.sh
-...
+cd dev
+make docker-build
+make run-tests
 ```

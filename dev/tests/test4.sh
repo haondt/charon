@@ -6,23 +6,22 @@ green="\e[32m"
 red="\e[31m"
 reset="\e[0m"
 
-export PYTHONPATH="../"
 echo "this is some testing text" > file.txt
-python3 -m charon -f charon.test.yml apply test_4
+charon -f charon.test.yml apply test_4
 echo  "more" >> file.txt
-python3 -m charon -f charon.test.yml apply test_4
+charon -f charon.test.yml apply test_4
 echo  "more" >> file.txt
-python3 -m charon -f charon.test.yml apply test_4
+charon -f charon.test.yml apply test_4
 echo  "more" >> file.txt
-python3 -m charon -f charon.test.yml apply test_4
+charon -f charon.test.yml apply test_4
 
 expected_output="3"
 real_output="$(RESTIC_PASSWORD=abcdefghijkl restic -r repo_4 snapshots --json | jq length)"
 
 if [ "$real_output" == "$expected_output" ]; then
-    echo -e "${green}test passed!${reset}"
+    echo -e "${green}test 4 passed!${reset}"
 else
-    echo -e "${red}test failed!${reset}"
+    echo -e "${red}test 4 failed!${reset}"
     diff -y <(echo "$expected_output") <(echo "$real_output")
 fi
 

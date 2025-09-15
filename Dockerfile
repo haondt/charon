@@ -2,11 +2,17 @@ FROM python:3.13.2-slim
 
 WORKDIR /app
 
-RUN apt update && apt install -y restic rclone && rm -rf /var/lib/apt/lists/*
+RUN apt update && apt install -y tree sqlite3 jq curl bzip2 rclone && rm -rf /var/lib/apt/lists/*
 
-COPY charon/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+ARG RESTIC_VERSION=0.18.0
+RUN curl -L -o /tmp/restic.bz2 https://github.com/restic/restic/releases/download/v${RESTIC_VERSION}/restic_${RESTIC_VERSION}_linux_amd64.bz2 \
+    && bunzip2 /tmp/restic.bz2 \
+    && mv /tmp/restic /usr/local/bin/restic \
+    && chmod +x /usr/local/bin/restic
+
 
 COPY ./charon ./charon
-CMD ["python3", "-m", "charon", "-f", "/config/charon.yml"]
+COPY pyproject.toml README.md LICENSE .
+RUN python3 -m pip install .
+CMD ["charon", "-f", "/config/charon.yml"]
 

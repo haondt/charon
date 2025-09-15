@@ -4,7 +4,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 name = "haondt_charon"
-authors = [{name = "haondt"}]
+authors = [{ name = "haondt" }]
 classifiers = ["License :: OSI Approved :: MIT License"]
 description = "charon is a utility for backing up data from one location to another at regular intervals."
 version = "0.0.0"
@@ -14,7 +14,8 @@ keywords = ["backup", "recovery"]
 dependencies = [
     "croniter>=2.0.5",
     "PyYAML>=6.0.1",
-    "jq>=1.8.0"
+    "jq>=1.8.0",
+    "requests==2.32.5",
 ]
 
 [project.scripts]

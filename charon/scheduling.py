@@ -1,7 +1,7 @@
 import sched, time, math
 from typing import Callable
 from croniter import croniter
-from dataclasses import dataclass 
+from dataclasses import dataclass
 import logging
 from datetime import timedelta
 import re, signal
@@ -38,21 +38,28 @@ class Job:
         scheduler.enterabs(next, 1, self.run_and_reschedule, (scheduler,))
 
     def run_and_reschedule(self, scheduler):
-        _logger.info(f"Executing job {self.name}")
+        log_extra = {
+            "charon.name": self.name
+        }
+        _logger.info("Executing job", extra=log_extra)
 
         if self.timeout_seconds is not None:
             signal.signal(signal.SIGALRM, timeout_handler(self.timeout_seconds))
             try:
                 self.task()
             except Exception as e:
-                _logger.exception(f"Job {self.name} failed: {e}")
+                _logger.exception(f"Job failed", extra=log_extra | {
+                    "charon.error": str(e)
+                })
             finally:
                 signal.alarm(0)
         else:
             try:
                 self.task()
             except Exception as e:
-                _logger.exception(f"Job {self.name} failed: {e}")
+                _logger.exception(f"Job failed", extra=log_extra | {
+                    "charon.error": str(e)
+                })
 
         if self.repeat:
             self.schedule_next(scheduler)
