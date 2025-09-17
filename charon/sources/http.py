@@ -38,8 +38,8 @@ class HttpSource:
         return self._td.name
 
     @property
-    def path(self):
-        return "."
+    def paths(self) -> list[str]:
+        return ["."]
 
 def create_http_source(name, config):
     targets = []

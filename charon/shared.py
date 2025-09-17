@@ -35,7 +35,7 @@ def get_task(name, config):
                     repo.init_repo()
 
             _logger.info(f'[{name}] creating snapshot')
-            repo.backup([source.path], cwd=source.context)
+            repo.backup(source.paths, cwd=source.context)
 
     return inner
 

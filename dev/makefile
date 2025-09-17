@@ -21,3 +21,4 @@ run-tests: #docker-build
 	docker run --rm -v $(DEV_DIR)/tests/charon.test.yml:/test/charon.test.yml -v $(DEV_DIR)/tests/test2.sh:/test/test.sh -w /test $(IMAGE) ./test.sh
 	docker run --rm -v $(DEV_DIR)/tests/charon.test.yml:/test/charon.test.yml -v $(DEV_DIR)/tests/test3.sh:/test/test.sh -w /test $(IMAGE) ./test.sh
 	docker run --rm -v $(DEV_DIR)/tests/charon.test.yml:/test/charon.test.yml -v $(DEV_DIR)/tests/test4.sh:/test/test.sh -w /test $(IMAGE) ./test.sh
+	docker run --rm -v $(DEV_DIR)/tests/charon.test.yml:/test/charon.test.yml -v $(DEV_DIR)/tests/test5.sh:/test/test.sh -w /test $(IMAGE) ./test.sh

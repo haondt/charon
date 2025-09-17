@@ -104,6 +104,17 @@ source:
   path: /path/to/data # path to data to back up. can be a file or a directory. does not use variable expansion
 ```
 
+you can also instead include a list of paths. only one of `path` or `paths` should be included.
+```yml
+source:
+  type: local
+  paths: 
+   - /path/to/data1
+   - /path/to/data2
+```
+
+If using a single path, charon will use a relative path. For example, `path: /path/to/data` will only backup and restore `data`. Using `paths` (e.g. `paths: [/path/to/data]`) will keep the full directory structure.
+
 **http**
 
 performs an http request, and saves the response body to a file
