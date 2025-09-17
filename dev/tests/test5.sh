@@ -1,16 +1,10 @@
 #!/bin/bash
 
-# tests nested directories + non-encrypted
+# tests multiple local paths
 
 green="\e[32m"
 red="\e[31m"
 reset="\e[0m"
-
-        # - dir1/dir2
-        # - dir1/dir3/dir4
-        # - dir1/dir3/file1.txt
-        # - dir2/file2.txt
-        # - dir3
 
 mkdir -p dir1/dir2
 mkdir -p dir1/dir3/dir4
