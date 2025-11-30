@@ -57,6 +57,12 @@ class Repository:
     def init_repo(self) -> None:
         self._run("init")
 
+    def unlock(self, remove_all = False) -> None:
+        if remove_all:
+            self._run("unlock", "--remove-all")
+        else:
+            self._run("unlock")
+
     def backup(self, paths: list[str], cwd: str|None=None) -> None:
         self._run("backup", "--skip-if-unchanged", *paths, cwd=cwd)
         if (self._max_snapshots == 0 or self._max_snapshots == None):

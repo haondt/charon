@@ -34,6 +34,11 @@ def get_task(name, config):
                     _logger.info(f'[{name}] initializing repository')
                     repo.init_repo()
 
+            if repo_config.get('unlock_all', False):
+                repo.unlock(True)
+            elif repo_config.get('unlock', False):
+                repo.unlock()
+
             _logger.info(f'[{name}] creating snapshot')
             repo.backup(source.paths, cwd=source.context)
 

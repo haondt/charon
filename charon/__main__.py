@@ -2,11 +2,14 @@ from .shared import load_config, get_task
 from . import scheduling
 import argparse
 from . import styx
-import logging, json
+import logging, json, datetime
 
 _logger = logging.getLogger(__name__)
 
 class JsonFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt = None):
+        return datetime.datetime.fromtimestamp(record.created, datetime.timezone.utc).astimezone().isoformat(sep="T",timespec="milliseconds")
+
     def format(self, record):
         data = {
             "level": record.levelname,
